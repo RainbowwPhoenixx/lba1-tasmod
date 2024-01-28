@@ -1,0 +1,14 @@
+skipto <framenumber>
+
+# Commentaire
+
+All other lines are of the form:
+MyJoy;MyKey;MyFire
+
+Where:
+MyJoy values: U,D,L,R
+
+MyKey values: ESC,H,P,F1,F2,F3,F4,F5,F6
+MyKey values alt: les actions des touches plutot que leur nom
+
+MyFire values: alt, shift, ctrl, return, space

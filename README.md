@@ -1,4 +1,6 @@
-# Little Big Adventure 1 - Engine source code - Community
+# Little Big Adventure 1 - Engine source code - TAS mod
+This fork mods in tas tools for the game. For more details, see the doc folder.
+
 Little Big Adventure (aka Relentless: Twinsen's Adventure) is an action-adventure game, developed by Adeline Software International in 1994. 
 
 We are releasing this code with preservation in mind, as this piece of work was exceptional for the time and we believe it can be a valuable source of education.
