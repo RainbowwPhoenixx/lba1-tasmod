@@ -2518,7 +2518,7 @@ LONG	MainGameMenu()
 				while( FileSize( GamePathname ) != 0 ) ;
 
 				InitGame( 1, 0 ) ;
-				Introduction() ;
+				// Introduction() ;
 				if( MainLoop() )
 				{
 #ifdef	DEMO
@@ -2543,7 +2543,7 @@ LONG	MainGameMenu()
 				if( !ChoosePlayerName( 21 ) ) break ;
 
 				InitGame( -1, 0 ) ;
-				Introduction() ;
+				// Introduction() ;
 				if( MainLoop() )
 				{
 #ifdef	DEMO

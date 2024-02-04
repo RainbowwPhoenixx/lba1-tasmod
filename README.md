@@ -3,6 +3,7 @@ This fork mods in tas tools for the game.
 
 ## Features
 - Basic movement and key presses
+- Auto intro skipping (legal? when does timing start?)
 
 ## Known issues
 - The tas playback is inconsistent. Playing the same script file twice will not have the exact same outcome. This is probably due to framerate issues.
