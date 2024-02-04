@@ -559,3 +559,4 @@ typedef struct	{	WORD	Num ;
 #define	NOT_ENOUGH_MEM		1
 #define	PROGRAM_OK		2
 #define	NAME_NOT_FOUND		3
+#define TAS_PARSE_ERROR 4

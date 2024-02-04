@@ -17,7 +17,7 @@
 // #define	DEMO	1
 
 // sauvegarde ecran/acceleration/infos
-//#define	DEBUG_TOOLS	1
+#define	DEBUG_TOOLS	1
 
 /*----------------*/
 

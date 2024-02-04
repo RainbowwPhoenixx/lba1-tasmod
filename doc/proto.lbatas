@@ -1,9 +1,9 @@
-skipto <framenumber>
+skipto <framenumber> # needed?
 
 # Commentaire
 
 All other lines are of the form:
-MyJoy;MyKey;MyFire
+tick>MyJoy;MyKey;MyFire
 
 Where:
 MyJoy values: U,D,L,R

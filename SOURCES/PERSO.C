@@ -65,6 +65,159 @@ void	AffDebugMenu()
 	Text( 0,lig+=9,  "%FSize HQM_Memory: %d Ko", Size_HQM_Memory/1024 ) ;
 	Text( 0,lig+=9,  "%FMax Used HQM_Memory: %d Ko", UsedHQMemory/1024 ) ;
 }
+/*══════════════════════════════════════════════════════════════════════════*/
+/*                               TAS STUFF                                  */
+/*══════════════════════════════════════════════════════════════════════════*/
+
+WORD	tas_menu = 1;
+WORD	tas_running = 1;
+ULONG	tick_count = 0;
+struct GameInput {
+	ULONG tick;
+	WORD MyJoy;
+	WORD MyKey;
+	WORD MyFire;
+};
+
+struct GameInput tas_current;
+struct GameInput tas_next;
+
+// Parser vars
+#define TAS_FILE_NAME "script"
+FILE*	tas_file_handle;
+UBYTE	tmp_str_buf[256];
+ULONG	tas_file_line_idx = 0;
+ULONG	tmp_str_buf_len = 0; // Needed?
+
+void AffTasMenu()
+{
+	WORD	lig = 0 ;
+	CoulText( 15, 0 ) ;
+	
+	Text(0, lig+=10, "%FPos: %d, %d, %d", ListObjet[NUM_PERSO].PosObjX, ListObjet[NUM_PERSO].PosObjY, ListObjet[NUM_PERSO].PosObjZ);
+	Text(0, lig+=10, "%FFrame: %d", NbNbf);
+	Text(0, lig+=10, "%FTicks: %d", tick_count);
+	Text(0, lig+=10, "%FNext instruction: %d", tas_next.tick);
+}
+
+// Initialise tas script and variables
+void init_tas() {
+	// Open tas file
+	tas_file_handle = OpenRead(TAS_FILE_NAME);
+	if (!tas_file_handle) {
+		TheEnd(ERROR_FILE_NOT_FOUND, TAS_FILE_NAME);
+	}
+
+	// Init current tick
+	tas_current.tick = 0;
+	tas_current.MyJoy = 0;
+	tas_current.MyKey = 0;
+	tas_current.MyFire = 0;
+
+	// Init next tick
+	parse_next_instruction();
+}
+
+// Set tas_next with the contents of the next line
+void parse_next_instruction() {
+	char letter = 0;
+
+	if (!tas_running) return;
+
+	Read(tas_file_handle, &letter, 1);
+	tmp_str_buf_len = 0;
+
+	// Clear next tick
+	tas_next.tick = 0;
+	tas_next.MyJoy = 0;
+	tas_next.MyKey = 0;
+	tas_next.MyFire = 0;
+
+	// Read tick value
+	while (letter && letter != '>' && letter != '\r' && letter != '\n') {
+		tmp_str_buf[tmp_str_buf_len++] = letter;
+		if (!Read(tas_file_handle, &letter, 1)) letter = 0;
+	}
+	tmp_str_buf[tmp_str_buf_len] = 0;
+	tas_next.tick = atoi(tmp_str_buf);
+	tmp_str_buf_len = 0;
+
+	// Read MyJoy (udlr)
+	if (letter == '>') Read(tas_file_handle, &letter, 1);
+	while (letter && letter != ';' && letter != '\r' && letter != '\n') {
+		
+		switch (letter)
+		{
+		case 'U': tas_next.MyJoy |= J_UP; break;
+		case 'D': tas_next.MyJoy |= J_DOWN; break;
+		case 'L': tas_next.MyJoy |= J_LEFT; break;
+		case 'R': tas_next.MyJoy |= J_RIGHT; break;
+		
+		default:
+			TheEnd(TAS_PARSE_ERROR, "Invalid value for direction. Should be UDLR.");
+			break;
+		}
+
+		if (!Read(tas_file_handle, &letter, 1)) letter = 0;
+	}
+
+	// Read MyKey (touches)
+	if (letter == ';') Read(tas_file_handle, &letter, 1);
+	while (letter && letter != ';' && letter != '\r' && letter != '\n') {
+		
+		switch (letter)
+		{
+		case '1': tas_next.MyKey = K_F1; break; // Normal
+		case '2': tas_next.MyKey = K_F2; break; // Sportif
+		case '3': tas_next.MyKey = K_F3; break; // Agressif
+		case '4': tas_next.MyKey = K_F4; break; // Discret
+		case 'Z': tas_next.MyKey = K_F5; break; // Zoom
+		case 'O': tas_next.MyKey = K_F11; break; // Options
+		case 'H': tas_next.MyKey = K_H; break; // Holomap
+		// TODO: add more
+		
+		default:
+			TheEnd(TAS_PARSE_ERROR, "Invalid value for button. Should be ???.");
+			break;
+		}
+
+		if (!Read(tas_file_handle, &letter, 1)) letter = 0;
+	}
+
+	// Read MyFire (touches spéciales)
+	if (letter == ';') Read(tas_file_handle, &letter, 1);
+	while (letter && letter != ';' && letter != '\r' && letter != '\n') {
+		
+		switch (letter)
+		{
+		case 'S': tas_next.MyFire = F_SHIFT; break;
+		case 'C': tas_next.MyFire = F_CTRL; break;
+		case 'A': tas_next.MyFire = F_ALT; break;
+		case 'D': tas_next.MyFire = F_SPACE; break;
+		case 'R': tas_next.MyFire = F_RETURN; break;
+		case 'E': tas_next.MyFire = K_ESC; break;
+		
+		default:
+			TheEnd(TAS_PARSE_ERROR, "Invalid value for special button. Should be ???.");
+			break;
+		}
+
+		if (!Read(tas_file_handle, &letter, 1)) letter = 0;
+	}
+
+	// Make sure to skip the LF in case of CRLF
+	if (letter == '\r') {
+		if (!Read(tas_file_handle, &letter, 1) || letter != '\n') {
+			TheEnd(TAS_PARSE_ERROR, "Parsing CRLF failed. This not normal.");
+		}
+	}
+
+	// Validate
+	if (!letter) tas_running = 0;
+	if (tas_next.tick <= tas_current.tick) {
+		TheEnd(TAS_PARSE_ERROR, "The ticks should only increase");
+	}
+}
 
 /*══════════════════════════════════════════════════════════════════════════*/
 
@@ -307,11 +460,17 @@ LONG	MainLoop()
 
 /*-------------------------------------------------------------------------*/
 
+	init_tas();
+
 	while( TRUE )
 	{
 startloop:
 
-
+		if (tas_next.tick <= tick_count) {
+			tas_current = tas_next;
+			parse_next_instruction();
+		}
+		tick_count++;
 //		while( TimerRef == timeralign ) ;
 //		timeralign = TimerRef ;
 		if( NbFramePerSecond > 500 )	Vsync() ;
@@ -334,9 +493,15 @@ startloop:
 
 		LastFire = MyFire ;
 
-		MyJoy = Joy		;
-		MyFire = Fire ; //& ~32 ;
-		MyKey = Key ;
+		if (tas_running) {
+			MyJoy = tas_current.MyJoy;
+			MyFire = tas_current.MyFire; //& ~32 ;
+			MyKey = tas_current.MyKey;
+		} else {
+			MyJoy = Joy ;
+			MyFire = Fire ; //& ~32 ;
+			MyKey = Key ;
+		}
 
 /*-------------------------------------------------------------------------*/
 /* gestion clavier */	/* tools */
@@ -351,6 +516,16 @@ startloop:
 		if( MyKey == K_T )
 		{
 			TimerRef += 10 ;
+		}
+
+		if( MyKey == K_J )
+		{
+			tas_menu ^= 1 ;
+		}
+
+		if ( tas_menu )
+		{
+			AffTasMenu() ;
 		}
 
 		if( MyKey == K_I )
@@ -1170,6 +1345,10 @@ void	TheEnd( WORD num, UBYTE *error )
 
 		case NOT_ENOUGH_MEM:
 			printf( "Not Enough Memory: %s (SEE README.TXT)\n", error ) ;
+			break ;
+		
+		case TAS_PARSE_ERROR:
+			printf("Failed to parse tas script: %s", error);
 			break ;
 
 		case PROGRAM_OK:
