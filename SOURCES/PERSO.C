@@ -102,6 +102,8 @@ void AffTasMenu()
 
 // Initialise tas script and variables
 void init_tas() {
+	// Close file if it is open before opening again
+	if (tas_file_handle) Close(tas_file_handle);
 	// Open tas file
 	tas_file_handle = OpenRead(TAS_FILE_NAME);
 	if (!tas_file_handle) {
@@ -113,6 +115,11 @@ void init_tas() {
 	tas_current.MyJoy = 0;
 	tas_current.MyKey = 0;
 	tas_current.MyFire = 0;
+
+	// Init tas vars
+	srand(1);
+	tas_running = 1;
+	tick_count = 0;
 
 	// Init next tick
 	parse_next_instruction();
@@ -501,6 +508,11 @@ startloop:
 			MyJoy = Joy ;
 			MyFire = Fire ; //& ~32 ;
 			MyKey = Key ;
+		}
+
+		// Replay tas
+		if (Key == K_R) {
+			return REPLAY_TAS;
 		}
 
 /*-------------------------------------------------------------------------*/

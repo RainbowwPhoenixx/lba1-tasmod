@@ -19,6 +19,10 @@
 // sauvegarde ecran/acceleration/infos
 #define	DEBUG_TOOLS	1
 
+/*-------TAS------*/
+// Return code of MainLoop to replay a tas
+#define REPLAY_TAS 69
+
 /*----------------*/
 
 // Brick, Gri et Bll dans .HQR

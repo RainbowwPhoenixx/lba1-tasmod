@@ -2461,6 +2461,7 @@ LONG	MainGameMenu()
 {
 	WORD select ;
 	WORD flag = 0 ;
+	WORD main_loop_res ;
 
 	HQ_StopSample() ;
 
@@ -2517,9 +2518,14 @@ LONG	MainGameMenu()
 				}
 				while( FileSize( GamePathname ) != 0 ) ;
 
+				main_loop_res = REPLAY_TAS;
+				while (main_loop_res == REPLAY_TAS) {
 				InitGame( 1, 0 ) ;
 				// Introduction() ;
-				if( MainLoop() )
+					main_loop_res = MainLoop() ;
+				} ;
+
+				if( main_loop_res )
 				{
 #ifdef	DEMO
 					PlayMidiFile( 6 ) ;
@@ -2542,9 +2548,14 @@ LONG	MainGameMenu()
 
 				if( !ChoosePlayerName( 21 ) ) break ;
 
+				main_loop_res = REPLAY_TAS;
+				while (main_loop_res == REPLAY_TAS) {
 				InitGame( -1, 0 ) ;
 				// Introduction() ;
-				if( MainLoop() )
+					main_loop_res = MainLoop() ;
+				} ;
+
+				if( main_loop_res )
 				{
 #ifdef	DEMO
 					PlayMidiFile( 6 ) ;
