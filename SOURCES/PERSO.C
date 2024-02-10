@@ -200,11 +200,17 @@ void parse_header() {
 // Set tas_next with the contents of the next line
 void parse_next_instruction() {
 	char letter = 0;
+	WORD relative = 0;
 
 	if (!tas_running) return;
 
 	read_letter(tas_file_handle, letter);
 	tmp_str_buf_len = 0;
+
+	if (letter == '+') {
+		relative = 1;
+		read_letter(tas_file_handle, letter);
+	}
 
 	// Clear next tick
 	tas_next.tick = 0;
@@ -218,7 +224,8 @@ void parse_next_instruction() {
 		read_letter(tas_file_handle, letter);
 	}
 	tmp_str_buf[tmp_str_buf_len] = 0;
-	tas_next.tick = atoi(tmp_str_buf);
+	tas_next.tick = tas_current.tick * relative + atoi(tmp_str_buf);
+	printf(tmp_str_buf);
 	tmp_str_buf_len = 0;
 
 	// Read MyJoy (udlr)

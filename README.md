@@ -11,6 +11,7 @@ This fork mods in tas tools for the game.
 - As a consequence of fixing rng, the game runs a little bit faster (physics run on 60Hz instead of 50Hz), but the outcome is the same.
 - Some menus are broken, like dialog boxes
 - Sound
+- Double tick needed at the end of a script
 
 ## Planned features
 - Playback control: pausing, playing, frame by frame.
@@ -21,5 +22,4 @@ This fork mods in tas tools for the game.
 - misc script syntax improvements
     - Allowing empty lines/comments in script
     - Specify a start save in the tas script
-    - relative ticks
 
