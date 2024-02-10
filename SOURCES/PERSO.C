@@ -73,6 +73,7 @@ WORD	tas_menu = 1;
 WORD	tas_running = 1;
 ULONG	tick_count = 0;
 UINT	tas_seed = 1;
+WORD	tas_skipto = 0;
 
 struct GameInput {
 	ULONG tick;
@@ -141,7 +142,7 @@ void parse_header() {
 	tmp_str_buf_len = 0;
 
 	// Parse seed
-	while (letter != ' ' && letter_valid(letter)) {
+	while (letter_valid(letter) && letter != ' ') {
 		tmp_str_buf[tmp_str_buf_len++] = letter;
 		read_letter(tas_file_handle, letter);
 	}
@@ -167,6 +168,33 @@ void parse_header() {
 		}
 	}
 
+	read_letter(tas_file_handle, letter);
+	
+	// Parse skipto
+	while (letter_valid(letter) && letter != ' ') {
+		tmp_str_buf[tmp_str_buf_len++] = letter;
+		read_letter(tas_file_handle, letter);
+	}
+	tmp_str_buf[tmp_str_buf_len] = 0;
+	if (strcmp(tmp_str_buf, "skipto")) TheEnd(TAS_PARSE_ERROR, "Expected skipto on second line.");
+	tmp_str_buf_len = 0;
+
+	// Parse skipto value
+	if (letter == ' ') read_letter(tas_file_handle, letter);
+	while (letter_valid(letter)) {
+		tmp_str_buf[tmp_str_buf_len++] = letter;
+		read_letter(tas_file_handle, letter);
+	}
+	tmp_str_buf[tmp_str_buf_len] = 0;
+	tas_skipto = atoi(tmp_str_buf);
+	tmp_str_buf_len = 0;
+
+	// Make sure to skip the LF in case of CRLF
+	if (letter == '\r') {
+		if (!Read(tas_file_handle, &letter, 1) || letter != '\n') {
+			TheEnd(TAS_PARSE_ERROR, "Parsing CRLF failed. This not normal.");
+		}
+	}
 	}
 
 // Set tas_next with the contents of the next line
@@ -526,7 +554,7 @@ startloop:
 		
 		while( TimerRef == timeralign ) ;
 		timeralign = TimerRef ;
-		Vsync() ;
+		if (tick_count > tas_skipto) Vsync() ;
 
 
 /*		CoulText( 15, 0 ) ;
@@ -1225,9 +1253,10 @@ Text( 10,70, "%FMemoLabelTrack: %d ", ptrobj->MemoLabelTrack ) ;
 /*-------------------------------------------------------------------------*/
 /* affiche tout */
 
+		if (tick_count > tas_skipto)  {
 		AffScene( FirstTime ) ;
-
 		FirstTime = FALSE ;
+		}
 
 		CmptFrame++ ;
 

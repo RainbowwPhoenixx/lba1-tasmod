@@ -3,14 +3,17 @@ This fork mods in tas tools for the game.
 
 ## Features
 - Basic movement and key presses
-- Restart keybind (r key)
+- Playback controls
+    - restart (r key)
+    - fast-forward
 
 ## Known issues
 - As a consequence of fixing rng, the game runs a little bit faster (physics run on 60Hz instead of 50Hz), but the outcome is the same.
+- Some menus are broken, like holomap and inventory
 - Sound
 
 ## Planned features
-- Playback control: pausing, playing, fast-forwarding.
+- Playback control: pausing, playing, frame by frame.
 - Menu navigation
 - 1-frame button presses
 - Tas selector menu
