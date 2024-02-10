@@ -253,6 +253,7 @@ void parse_next_instruction() {
 		case 'Z': tas_next.MyKey = K_F5; break; // Zoom
 		case 'O': tas_next.MyKey = K_F11; break; // Options
 		case 'H': tas_next.MyKey = K_H; break; // Holomap
+		case 'E': tas_next.MyKey = K_ESC; break;
 		// TODO: add more
 		
 		default:
@@ -274,7 +275,6 @@ void parse_next_instruction() {
 		case 'A': tas_next.MyFire = F_ALT; break;
 		case 'D': tas_next.MyFire = F_SPACE; break;
 		case 'R': tas_next.MyFire = F_RETURN; break;
-		case 'E': tas_next.MyFire = K_ESC; break;
 		
 		default:
 			TheEnd(TAS_PARSE_ERROR, "Invalid value for special button. Should be ???.");
@@ -295,6 +295,29 @@ void parse_next_instruction() {
 	if (!letter) tas_running = 0;
 	if (tas_next.tick <= tas_current.tick) {
 		TheEnd(TAS_PARSE_ERROR, "The ticks should only increase");
+	}
+}
+
+void tas_next_input(WORD set_lastfire) {
+	if (tas_next.tick <= tick_count) {
+		tas_current = tas_next;
+		parse_next_instruction();
+	}
+	tick_count++;
+	TimerRef++;
+
+	if (tick_count > tas_skipto) Vsync() ;
+
+	if (set_lastfire) LastFire = MyFire ;
+
+	if (tas_running) {
+		MyJoy = tas_current.MyJoy;
+		MyFire = tas_current.MyFire; //& ~32 ;
+		MyKey = tas_current.MyKey;
+	} else {
+		MyJoy = Joy ;
+		MyFire = Fire ; //& ~32 ;
+		MyKey = Key ;
 	}
 }
 
@@ -545,20 +568,10 @@ LONG	MainLoop()
 	{
 startloop:
 
-		if (tas_next.tick <= tick_count) {
-			tas_current = tas_next;
-			parse_next_instruction();
-		}
-		tick_count++;
-		TimerRef++;
+		tas_next_input(1);
 		
 		while( TimerRef == timeralign ) ;
 		timeralign = TimerRef ;
-		if (tick_count > tas_skipto) Vsync() ;
-
-
-/*		CoulText( 15, 0 ) ;
-		Text( 0,0, "%FTimerRef: %l", TimerRef ) ;	*/
 
 /*-------------------------------------------------------------------------*/
 		if( NewCube != -1 )
@@ -571,18 +584,6 @@ startloop:
 #endif
 
 /*-------------------------------------------------------------------------*/
-
-		LastFire = MyFire ;
-
-		if (tas_running) {
-			MyJoy = tas_current.MyJoy;
-			MyFire = tas_current.MyFire; //& ~32 ;
-			MyKey = tas_current.MyKey;
-		} else {
-			MyJoy = Joy ;
-			MyFire = Fire ; //& ~32 ;
-			MyKey = Key ;
-		}
 
 		// Replay tas
 		if (Key == K_R) {

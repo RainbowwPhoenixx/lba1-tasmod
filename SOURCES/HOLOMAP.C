@@ -610,108 +610,109 @@ void	HoloMap()
 
 	current = NumCube ;
 
-	while( (Key != K_ESC) AND (Key != K_H) AND !(Fire&F_RETURN) )
+	while( (MyKey != K_ESC) AND (Key != K_H) AND !(MyFire&F_RETURN) )
 	{
-	if( flagrebond )
-	{
-		if( !Joy AND !Fire )	flagrebond = FALSE ;
-	}
-	else
-	{
-		MyKey = Key ;
-		MyFire = Fire ;
-		MyJoy = Joy ;
-
-		if( MyFire & F_CTRL )
+		tas_next_input(0);
+		if( flagrebond )
 		{
-			if( (dialstat != 1) AND (!automove) )
-			{
-				if( MyJoy & J_UP )	calpha-=8 ;
-				if( MyJoy & J_DOWN )	calpha+=8 ;
-				if( MyJoy & J_LEFT )	cbeta-=8 ;
-				if( MyJoy & J_RIGHT )	cbeta+=8 ;
-			}
-
-                        calpha &= 1023 ;
-			cbeta  &= 1023 ;
+			if( !Joy AND !Fire )	flagrebond = FALSE ;
 		}
 		else
 		{
-			// search & goto next arrow
+			// MyKey = Key ;
+			// MyFire = Fire ;
+			// MyJoy = Joy ;
 
-			if( MyJoy & J_RIGHT )
+			if( MyFire & F_CTRL )
 			{
-				current = SearchNextArrow( current ) ;
-				if( current == -1 )
+				if( (dialstat != 1) AND (!automove) )
 				{
-					oalpha = calpha ;
-					obeta = cbeta ;
-					otimer = TimerRef ;
-					dalpha = ListHoloPos[NumCube].Alpha & 1023 ;
-					dbeta = ListHoloPos[NumCube].Beta & 1023 ;
-
-					dialstat = 3 ;
-					dialmess = ListHoloPos[NumCube].Mess ;
+					if( MyJoy & J_UP )	calpha-=8 ;
+					if( MyJoy & J_DOWN )	calpha+=8 ;
+					if( MyJoy & J_LEFT )	cbeta-=8 ;
+					if( MyJoy & J_RIGHT )	cbeta+=8 ;
 				}
-				else
+
+							calpha &= 1023 ;
+				cbeta  &= 1023 ;
+			}
+			else
+			{
+				// search & goto next arrow
+
+				if( MyJoy & J_RIGHT )
 				{
-					oalpha = calpha ;
-					obeta = cbeta ;
-					otimer = TimerRef ;
-					dalpha = ListHoloPos[current].Alpha & 1023 ;
-					dbeta  = ListHoloPos[current].Beta & 1023 ;
+					current = SearchNextArrow( current ) ;
+					if( current == -1 )
+					{
+						oalpha = calpha ;
+						obeta = cbeta ;
+						otimer = TimerRef ;
+						dalpha = ListHoloPos[NumCube].Alpha & 1023 ;
+						dbeta = ListHoloPos[NumCube].Beta & 1023 ;
 
-					dialstat = 3 ;
-					dialmess = ListHoloPos[current].Mess ;
+						dialstat = 3 ;
+						dialmess = ListHoloPos[NumCube].Mess ;
+					}
+					else
+					{
+						oalpha = calpha ;
+						obeta = cbeta ;
+						otimer = TimerRef ;
+						dalpha = ListHoloPos[current].Alpha & 1023 ;
+						dbeta  = ListHoloPos[current].Beta & 1023 ;
+
+						dialstat = 3 ;
+						dialmess = ListHoloPos[current].Mess ;
+					}
+					automove = TRUE ;
+					flagrebond = TRUE ;
 				}
-				automove = TRUE ;
-				flagrebond = TRUE ;
+
+				if( MyJoy & J_LEFT )
+				{
+					current = SearchPrevArrow( current ) ;
+					if( current == -1 )
+					{
+						oalpha = calpha ;
+						obeta = cbeta ;
+						otimer = TimerRef ;
+						dalpha = ListHoloPos[NumCube].Alpha & 1023 ;
+						dbeta = ListHoloPos[NumCube].Beta & 1023 ;
+
+						dialstat = 3 ;
+						dialmess = ListHoloPos[NumCube].Mess ;
+					}
+					else
+					{
+						oalpha = calpha ;
+						obeta = cbeta ;
+						otimer = TimerRef ;
+						dalpha = ListHoloPos[current].Alpha & 1023 ;
+						dbeta  = ListHoloPos[current].Beta & 1023 ;
+
+						dialstat = 3 ;
+						dialmess = ListHoloPos[current].Mess ;
+					}
+					automove = TRUE ;
+					flagrebond = TRUE ;
+				}
 			}
 
-			if( MyJoy & J_LEFT )
-			{
-				current = SearchPrevArrow( current ) ;
-				if( current == -1 )
-				{
-					oalpha = calpha ;
-					obeta = cbeta ;
-					otimer = TimerRef ;
-					dalpha = ListHoloPos[NumCube].Alpha & 1023 ;
-					dbeta = ListHoloPos[NumCube].Beta & 1023 ;
 
-					dialstat = 3 ;
-					dialmess = ListHoloPos[NumCube].Mess ;
-				}
-				else
-				{
-					oalpha = calpha ;
-					obeta = cbeta ;
-					otimer = TimerRef ;
-					dalpha = ListHoloPos[current].Alpha & 1023 ;
-					dbeta  = ListHoloPos[current].Beta & 1023 ;
+	/*		if( MyJoy & J_UP )	menumode++, flagrebond = TRUE, redrawmenu = TRUE ;
+			if( menumode > 3 )	menumode = 0 ;
+			if( MyJoy & J_DOWN )	menumode--, flagrebond = TRUE, redrawmenu = TRUE  ;
+			if( menumode < 0 )	menumode = 3 ;
+	*/
+		} // flagrebond
 
-					dialstat = 3 ;
-					dialmess = ListHoloPos[current].Mess ;
-				}
-				automove = TRUE ;
-				flagrebond = TRUE ;
-			}
+		if( automove )
+		{
+			calpha = BoundRegleTrois( oalpha, dalpha, 75, TimerRef-otimer ) ;
+			cbeta  = BoundRegleTrois( obeta,  dbeta,  75, TimerRef-otimer ) ;
+			flagredraw = TRUE ;
 		}
-
-
-/*		if( MyJoy & J_UP )	menumode++, flagrebond = TRUE, redrawmenu = TRUE ;
-		if( menumode > 3 )	menumode = 0 ;
-		if( MyJoy & J_DOWN )	menumode--, flagrebond = TRUE, redrawmenu = TRUE  ;
-		if( menumode < 0 )	menumode = 3 ;
-*/
-	} // flagrebond
-
-	if( automove )
-	{
-		calpha = BoundRegleTrois( oalpha, dalpha, 75, TimerRef-otimer ) ;
-		cbeta  = BoundRegleTrois( obeta,  dbeta,  75, TimerRef-otimer ) ;
-		flagredraw = TRUE ;
-	}
 
 //	calpha &= 1023 ;
 //	cbeta &= 1023 ;

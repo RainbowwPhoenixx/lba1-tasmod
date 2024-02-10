@@ -702,18 +702,19 @@ void	Inventory()
 	TestCoulDial( 4 ) ;
 	InitDialWindow() ;
 
-	while( Key != K_ESC )
+	while( MyKey != K_ESC )
 	{
 #ifdef	DEBUG_TOOLS
 		CheckSavePcx() ;
 #endif
 		oldselect = InvSelect ;
 
+		tas_next_input(0);
 		if( !flag )
 		{
-			MyJoy = Joy ;
-			MyFire = Fire ;
-			MyKey = Key ;
+			// MyJoy = Joy ;
+			// MyFire = Fire ;
+			// MyKey = Key ;
 			if( MyJoy OR Fire )	flag = 1 ;
 		}
 		else

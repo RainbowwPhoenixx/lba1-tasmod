@@ -9,7 +9,7 @@ This fork mods in tas tools for the game.
 
 ## Known issues
 - As a consequence of fixing rng, the game runs a little bit faster (physics run on 60Hz instead of 50Hz), but the outcome is the same.
-- Some menus are broken, like holomap and inventory
+- Some menus are broken, like dialog boxes
 - Sound
 
 ## Planned features
@@ -21,4 +21,5 @@ This fork mods in tas tools for the game.
 - misc script syntax improvements
     - Allowing empty lines/comments in script
     - Specify a start save in the tas script
-    - Specify game seed in script
+    - relative ticks
+
