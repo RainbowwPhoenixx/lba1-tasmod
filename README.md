@@ -6,7 +6,7 @@ This fork mods in tas tools for the game.
 - Restart keybind (r key)
 
 ## Known issues
-- The tas playback is inconsistent. Playing the same script file twice will not have the exact same outcome. This is probably due to framerate issues.
+- As a consequence of fixing rng, the game runs a little bit faster (physics run on 60Hz instead of 50Hz), but the outcome is the same.
 - Sound
 
 ## Planned features

@@ -72,13 +72,14 @@ void	AffDebugMenu()
 WORD	tas_menu = 1;
 WORD	tas_running = 1;
 ULONG	tick_count = 0;
+UINT	tas_seed = 1;
+
 struct GameInput {
 	ULONG tick;
 	WORD MyJoy;
 	WORD MyKey;
 	WORD MyFire;
 };
-
 struct GameInput tas_current;
 struct GameInput tas_next;
 
@@ -116,14 +117,57 @@ void init_tas() {
 	tas_current.MyKey = 0;
 	tas_current.MyFire = 0;
 
+	// Parse init
+	parse_header();
+
 	// Init tas vars
-	srand(1);
+	ClearTimer();
+	srand(tas_seed);
 	tas_running = 1;
 	tick_count = 0;
+	TimerRef = 0;
 
 	// Init next tick
 	parse_next_instruction();
 }
+
+#define letter_valid(letter) (letter && letter != '\r' && letter != '\n')
+#define read_letter(handle, letter) if (!Read(handle, &letter, 1)) letter = 0;
+
+void parse_header() {
+	char letter = 0;
+
+	read_letter(tas_file_handle, letter);
+	tmp_str_buf_len = 0;
+
+	// Parse seed
+	while (letter != ' ' && letter_valid(letter)) {
+		tmp_str_buf[tmp_str_buf_len++] = letter;
+		read_letter(tas_file_handle, letter);
+	}
+	tmp_str_buf[tmp_str_buf_len] = 0;
+	if (strcmp(tmp_str_buf, "seed")) TheEnd(TAS_PARSE_ERROR, "Expected seed on first line.");
+	tmp_str_buf_len = 0;
+
+	// Parse seed value
+	if (letter == ' ') read_letter(tas_file_handle, letter);
+	while (letter_valid(letter)) {
+		tmp_str_buf[tmp_str_buf_len++] = letter;
+		read_letter(tas_file_handle, letter);
+	}
+	tmp_str_buf[tmp_str_buf_len] = 0;
+	tas_seed = atoi(tmp_str_buf);
+	if (tas_seed == 0) TheEnd(TAS_PARSE_ERROR, "Invalid seed value");
+	tmp_str_buf_len = 0;
+
+	// Make sure to skip the LF in case of CRLF
+	if (letter == '\r') {
+		if (!Read(tas_file_handle, &letter, 1) || letter != '\n') {
+			TheEnd(TAS_PARSE_ERROR, "Parsing CRLF failed. This not normal.");
+		}
+	}
+
+	}
 
 // Set tas_next with the contents of the next line
 void parse_next_instruction() {
@@ -131,7 +175,7 @@ void parse_next_instruction() {
 
 	if (!tas_running) return;
 
-	Read(tas_file_handle, &letter, 1);
+	read_letter(tas_file_handle, letter);
 	tmp_str_buf_len = 0;
 
 	// Clear next tick
@@ -141,17 +185,17 @@ void parse_next_instruction() {
 	tas_next.MyFire = 0;
 
 	// Read tick value
-	while (letter && letter != '>' && letter != '\r' && letter != '\n') {
+	while (letter_valid(letter) && letter != '>') {
 		tmp_str_buf[tmp_str_buf_len++] = letter;
-		if (!Read(tas_file_handle, &letter, 1)) letter = 0;
+		read_letter(tas_file_handle, letter);
 	}
 	tmp_str_buf[tmp_str_buf_len] = 0;
 	tas_next.tick = atoi(tmp_str_buf);
 	tmp_str_buf_len = 0;
 
 	// Read MyJoy (udlr)
-	if (letter == '>') Read(tas_file_handle, &letter, 1);
-	while (letter && letter != ';' && letter != '\r' && letter != '\n') {
+	if (letter == '>') read_letter(tas_file_handle, letter);
+	while (letter_valid(letter) && letter != ';') {
 		
 		switch (letter)
 		{
@@ -165,12 +209,12 @@ void parse_next_instruction() {
 			break;
 		}
 
-		if (!Read(tas_file_handle, &letter, 1)) letter = 0;
+		read_letter(tas_file_handle, letter);
 	}
 
 	// Read MyKey (touches)
-	if (letter == ';') Read(tas_file_handle, &letter, 1);
-	while (letter && letter != ';' && letter != '\r' && letter != '\n') {
+	if (letter == ';') read_letter(tas_file_handle, letter);
+	while (letter_valid(letter) && letter != ';') {
 		
 		switch (letter)
 		{
@@ -188,12 +232,12 @@ void parse_next_instruction() {
 			break;
 		}
 
-		if (!Read(tas_file_handle, &letter, 1)) letter = 0;
+		read_letter(tas_file_handle, letter);
 	}
 
 	// Read MyFire (touches spéciales)
-	if (letter == ';') Read(tas_file_handle, &letter, 1);
-	while (letter && letter != ';' && letter != '\r' && letter != '\n') {
+	if (letter == ';') read_letter(tas_file_handle, letter);
+	while (letter_valid(letter) && letter != ';') {
 		
 		switch (letter)
 		{
@@ -209,7 +253,7 @@ void parse_next_instruction() {
 			break;
 		}
 
-		if (!Read(tas_file_handle, &letter, 1)) letter = 0;
+		read_letter(tas_file_handle, letter);
 	}
 
 	// Make sure to skip the LF in case of CRLF
@@ -478,9 +522,11 @@ startloop:
 			parse_next_instruction();
 		}
 		tick_count++;
-//		while( TimerRef == timeralign ) ;
-//		timeralign = TimerRef ;
-		if( NbFramePerSecond > 500 )	Vsync() ;
+		TimerRef++;
+		
+		while( TimerRef == timeralign ) ;
+		timeralign = TimerRef ;
+		Vsync() ;
 
 
 /*		CoulText( 15, 0 ) ;
